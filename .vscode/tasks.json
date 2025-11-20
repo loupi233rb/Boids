@@ -1,0 +1,25 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build project",
+            "type": "cppbuild",
+            "command": "C:\\TDM-GCC-64\\bin\\g++.exe",
+            "args": [
+                "-g",
+                "-I", "${workspaceFolder}/include",
+                "-I", "F:/environment/easyX/include",
+                "-L", "F:/environment/easyX/lib",
+                "${workspaceFolder}/src/*.cpp",
+                "-o", "${workspaceFolder}/bin/main.exe",
+                "-leasyX",
+                "-lwinmm"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": ["$gcc"]
+        }
+    ]
+}

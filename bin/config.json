@@ -1,0 +1,20 @@
+{
+	"window_width": 1200,
+	"window_height": 800,
+	"sep_weight": 1.8,
+	"par_weight": 0.9,
+	"agg_weight": 2.0,
+	"sep_range": 50,
+	"par_range": 50,
+	"agg_range": 100,
+	"max_speed": 90,
+	"max_force": 50,
+	"min_force": 10,
+	"bird_num": 50,
+	"logic_fps": 30,
+	"render_fps": 30,
+	"delta_t": 0.02,
+	"random_step": 5,
+	"mouse_range": 200,
+	"chase_speed": 1000
+}
