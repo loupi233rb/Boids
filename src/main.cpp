@@ -185,5 +185,10 @@ int main()
     Sleep(1000);
     closegraph();
     timeEndPeriod(1);
+
+    for(auto *i:birds){
+        delete i;
+    }
+    
     return 0;
 }
