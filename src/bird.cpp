@@ -1,4 +1,4 @@
-#include <bird.h>
+#include "bird.h"
 #include <cmath>
 #include <random>
 
@@ -8,7 +8,7 @@ vector2 vector2::operator+(const vector2& other) const{
 };
 
 vector2 vector2::operator-(const vector2& other) const{
-    return vector2(x-other.x,y-other.y);
+    return vector2(x-other.x,y-other.y); 
 };
 
 vector2 vector2::operator*(float scalar) const{
@@ -17,6 +17,27 @@ vector2 vector2::operator*(float scalar) const{
 
 vector2 vector2::operator/(float num) const{
     return vector2(x/num,y/num);
+}
+
+vector2 vector2::operator+=(const vector2& other){
+    *this = *this + other;
+    return *this;
+};
+vector2 vector2::operator-=(const vector2& other){
+    *this = *this - other;
+    return *this;
+};
+vector2 vector2::operator*=(float s){
+    *this = *this * s;
+    return *this;
+};
+vector2 vector2::operator/=(float s){
+    *this = *this / s;
+    return *this;
+};
+void vector2::zero(){
+    x = 0.;
+    y = 0.;
 }
 
 // 最大速度改变量限制
@@ -111,7 +132,7 @@ vector2 bird::getPos() {return position;}
 vector2 bird::getV() {return velocity;}
 
 // 鸟思考函数
-void bird::think(std::vector<bird*> &boids, int sep_range, int par_range, int agg_range, float s_weight, float p_weight, float a_weight, float maxForce, float minForce, bool is_pressed, vector2 mouse_position, int mouse_range, int chase_speed)
+void bird::think(std::vector<bird*> &boids,int sep_range, int par_range, int agg_range, float s_weight, float p_weight, float a_weight, float maxForce, float minForce, bool is_pressed, vector2 mouse_position, int mouse_range, int chase_speed)
 {
     vector2 sepVector(0,0),parVector(0,0),aveVector(0,0);
     int sepNum=0,parNum=0,aveNum=0;
@@ -177,13 +198,10 @@ void bird::think(std::vector<bird*> &boids, int sep_range, int par_range, int ag
     if(!needPar) delta = delta.normalize() * chase_force.lenth() / 2;
     delta = delta + chase_force;
     acceleration = delta;
-
-    
-    
 }
 
 // 渲染函数
-void bird::render(vector2* shape, int point_num){
+void bird::render(const std::vector<vector2> &shape, int point_num){
     POINT* dot_list;
     dot_list = new POINT[point_num];
     vector2 face = this->getV().normalize();
@@ -198,4 +216,135 @@ void bird::render(vector2* shape, int point_num){
     delete [] dot_list;
 }
 
-// 跟随鼠标
+void bird::update(const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
+    std::vector<double> distance;
+    for(auto *i:boids){
+        if(i == this) distance.push_back(0.);
+        else distance.push_back(position.distanceTo(i->getPos()));
+    }
+    vector2 s = Rule::Separation(this, boids, distance, eset, bset);
+    vector2 a = Rule::Alignment(this, boids, distance, eset, bset);
+    vector2 c = Rule::Cohesion(this, boids, distance, eset, bset);
+    vector2 chase = Rule::ChaseMouse(this, eset, bset);
+    vector2 avoidance = Rule::AvoidBoundary(this, eset);
+
+    if(avoidance.lenth()!=0){
+        s.zero();
+        a.zero();
+        c.zero();
+    }
+    if(chase.lenth()!=0){
+        a.zero();
+        c.zero();
+    }
+
+    std::normal_distribution<> ldist(0,0.5);
+    std::normal_distribution<> rdist(0,M_PI/24);
+    double noise = ldist(gen) * bset.noise_w;
+    double force = (s + a + c + chase + avoidance).lenth();
+    acceleration = (s + a + c + chase + avoidance).normalize().rotate(rdist(gen)) * force;
+};
+
+void bird::tick_v2_0(const EnvSetting &eset, const BirdSetting &bset){
+    if(acceleration.lenth() > bset.f_max){
+        acceleration = acceleration.normalize() * bset.f_max;
+    }
+    if(acceleration.lenth() < bset.f_min){
+        acceleration = vector2(0.,0.);
+    }
+
+    velocity += acceleration * eset.DT * 60 / eset.RENDER_FPS;
+
+    if(velocity.lenth() > bset.v_max){
+        velocity = velocity.normalize() * bset.v_max;
+    }
+
+    if(position.x < 0) position.x = 0;
+    if(position.y < 0) position.y = 0;
+    if(position.x > eset.MX) position.x = eset.MX;
+    if(position.y > eset.MY) position.y = eset.MY;
+
+    position += velocity * eset.DT * 60 / eset.RENDER_FPS;
+};
+
+namespace Birdmath
+{
+    // soft inverse proportion
+    double SIP(double a, double x){
+        return a/(x + 1);
+    };
+};
+
+namespace Rule
+{
+    vector2 Separation(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
+        vector2 sep_vector(0, 0);
+        int sep_count = 0;
+        for(int i = 0;i < boids.size();i++){
+            if(boids[i] == self) continue;
+            if(distance[i] < bset.s_r){
+                sep_vector += boids[i]->getPos();
+                sep_count++;
+            }
+        }
+        if(sep_count != 0) sep_vector /= sep_count;
+        return (self->getPos() - sep_vector).normalize() * Birdmath::SIP(10., (self->getPos() - sep_vector).lenth()) * bset.c_w;
+    };
+
+    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
+        vector2 coh_vector(0, 0);
+        int coh_count = 0;
+        for(int i = 0;i < boids.size();i++){
+            if(boids[i] == self) continue;
+            if(distance[i] < bset.c_r){
+                coh_vector += boids[i]->getPos();
+                coh_count++;
+            }
+        }
+        if(coh_count != 0) coh_vector /= coh_count;
+        return (coh_vector - self->getPos()).normalize() * ((self->getPos() - coh_vector).lenth() + 1) * bset.c_w;
+    };
+
+    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
+        vector2 ali_vector(0,0);
+        int ali_count = 0;
+        for(int i = 0;i < boids.size();i++){
+            if(boids[i] == self) continue;
+            if(distance[i] < bset.a_r){
+                ali_vector += boids[i]->getV();
+                ali_count++;
+            }
+        }
+        if(ali_count != 0) ali_vector /= ali_count;
+        return ali_vector - self->getV() * bset.a_w;
+    };
+
+    vector2 ChaseMouse(bird* self, const EnvSetting &eset, const BirdSetting &bset){
+        if(eset.IS_LEFTBUTTON_DOWN){
+            double d = self->getPos().distanceTo(eset.MOUSE_POSITION);
+            if(d > 1.5*bset.mouse_r){
+                return eset.MOUSE_POSITION - self->getPos();
+            }
+            else if(d <= 1.5 * bset.mouse_r && d >= 0.5 * bset.mouse_r){
+                vector2 chase = eset.MOUSE_POSITION - self->getPos();
+                chase.rotate(M_PI_2);
+                return chase;
+            }
+            else{
+                return (self->getPos() - eset.MOUSE_POSITION).normalize() * Birdmath::SIP(bset.mouse_r, d);
+            }
+        }
+        else{
+            return vector2(0.,0.);
+        }
+    };
+
+    vector2 AvoidBoundary(bird* self, const EnvSetting &eset){
+        vector2 boundary_force;
+        if(self->getPos().x + self->getV().x*eset.DT*2 < eset.BOUNDARY) boundary_force.x += (eset.BOUNDARY - self->getPos().x)/eset.BOUNDARY;
+        if(self->getPos().x + self->getV().x*eset.DT*2 > eset.MX-eset.BOUNDARY) boundary_force.x -= (self->getPos().x-(eset.MX-eset.BOUNDARY))/eset.BOUNDARY;
+        if(self->getPos().y + self->getV().y*eset.DT*2 < eset.BOUNDARY) boundary_force.y += (eset.BOUNDARY - self->getPos().y)/eset.BOUNDARY;
+        if(self->getPos().y + self->getV().y*eset.DT*2 > eset.MY-eset.BOUNDARY) boundary_force.y -= (self->getPos().y - (eset.MY-eset.BOUNDARY))/eset.BOUNDARY;
+        return boundary_force.normalize() * eset.BOUNDARY_FORCE;
+    }
+}

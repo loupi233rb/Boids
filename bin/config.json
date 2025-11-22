@@ -1,20 +1,27 @@
 {
-	"window_width": 1200,
-	"window_height": 800,
-	"sep_weight": 1.8,
-	"par_weight": 0.9,
-	"agg_weight": 2.0,
-	"sep_range": 50,
-	"par_range": 50,
-	"agg_range": 100,
-	"max_speed": 90,
-	"max_force": 50,
-	"min_force": 10,
-	"bird_num": 50,
-	"logic_fps": 30,
-	"render_fps": 30,
-	"delta_t": 0.02,
-	"random_step": 5,
-	"mouse_range": 200,
-	"chase_speed": 1000
+	"EnvironmentSetting":
+	{
+		"window_w": 1200,
+		"window_h": 800,
+		"boundary_range": 10,
+		"boundary_force": 100,
+		"dt" : 0.05,
+		"logic_fps": 24,
+		"render_fps": 120,
+		"bird_num": 100
+	},
+	"BirdSetting":
+	{
+		"separation_weight": 1.8,
+		"alignment_weight": 0.8,
+		"cohesion_weight": 2.0,
+		"separation_range": 80,
+		"alignment_range": 50,
+		"cohesion_range": 100,
+		"v_max": 100,
+		"force_max": 50,
+		"force_min": 5,
+		"mouse_range": 200,
+		"noise_weight": 1.0
+	}
 }
