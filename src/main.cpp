@@ -1,6 +1,7 @@
 #include "bird.h"
 #include "timer.h"
 #include "funcThread.h"
+#include "crossList.h"
 
 #include <mmsystem.h>
 #pragma comment(lib, "winmm.lib")
@@ -38,6 +39,8 @@ void ReadSetting(EnvSetting &eset, BirdSetting &bset){
             eset.LOGIC_FPS = temp.at("logic_fps");
             eset.RENDER_FPS = temp.at("render_fps");
             eset.BIRD_NUM = temp.at("bird_num");
+            eset.LOGIC_FPS_UPDATE_SPEED = temp.at("logic_fps_update_speed");
+            eset.RENDER_FPS_UPDATE_SPEED = temp.at("render_fps_update_speed");
         }
         catch(nlohmann::json::exception& e)
         {
@@ -76,18 +79,22 @@ void ReadSetting(EnvSetting &eset, BirdSetting &bset){
 
 bool RUNNING[2] = {false,false};
 
+std::vector<CrossList<grid*>*>* gridSet;
+
 vector2 shape[4] = {vector2(3,0),vector2(-2.796,-1.553),vector2(-2.796,1.553)};
+
+TCHAR fpsInfo[2][7];
 
 
 int main()
-{
+{;
     EnvSetting eset;
     BirdSetting bset;
     ReadSetting(eset, bset);
 
 
     srand((unsigned int)time(NULL));
-    initgraph(eset.MX, eset.MY);
+    initgraph(eset.MX + 200, eset.MY);
     setbkcolor(DARKGRAY);
     setlinestyle(PS_SOLID);
 
@@ -101,23 +108,22 @@ int main()
         float rvy = 20 - rand() % 41;
         vector2 p(rx,ry),v(rvx,rvy);
         bird* b;
-        b = new bird(WHITE,5, v, p);
+        b = new bird(WHITE,3, v, p);
         birds.push_back(b);
     }
 
     bool running = 1;
     ExMessage m;
 
-    HighPrecisionTimer timer;
+    // 计时器
+     FrameRateController Rfrc(eset.RENDER_FPS, eset.RENDER_FPS_UPDATE_SPEED);
+     FrameRateController Lfrc(eset.LOGIC_FPS, eset.LOGIC_FPS_UPDATE_SPEED);
+    
+    gridSet = DivideGrid(eset, bset);
 
-    // 提高Sleep精度
-    timeBeginPeriod(1);
+    std::thread logic_thread(logic_tick_v4_0, std::ref(birds), std::ref(Lfrc), std::ref(eset), std::ref(bset), gridSet, RUNNING);
+    std::thread render_thread(render_tick_v3_0, std::ref(birds), std::ref(Rfrc), std::ref(eset), std::ref(bset), fpsInfo, RUNNING);
 
-
-    // std::thread logic_thread(logic_tick,std::ref(birds),std::ref(timer),LOGIC_FPS);
-    // std::thread render_thread(render_tick,std::ref(birds),std::ref(timer),RENDER_FPS);
-    std::thread logic_thread(logic_tick_v2_0,std::ref(birds),std::ref(timer),std::ref(eset),std::ref(bset),RUNNING);
-    std::thread render_thread(render_tick_v2_0,std::ref(birds),std::ref(timer),std::ref(eset),std::ref(bset),RUNNING);
     logic_thread.detach();
     render_thread.detach();
 
@@ -142,16 +148,19 @@ int main()
                 eset.IS_LEFTBUTTON_DOWN = 0;
             } 
         }
+        _stprintf_s(fpsInfo[0], 7, _T("%3.2f"), Rfrc.getFps());
+        _stprintf_s(fpsInfo[1], 7, _T("%3.2f"), Lfrc.getFps());
     }
 
     // 
     Sleep(1000);
     closegraph();
-    timeEndPeriod(1);
+    // timeEndPeriod(1);
 
     for(auto *i:birds){
         delete i;
     }
+    DeleteGrids(gridSet);
     
     return 0;
 }

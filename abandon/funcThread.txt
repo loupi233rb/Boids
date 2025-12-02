@@ -1,0 +1,22 @@
+void logic_tick_v2_0(std::vector<bird*> &birds, HighPrecisionTimer &timer, const EnvSetting &eset, const BirdSetting &bset, bool* RUNNING){
+    while(RUNNING[0]){    
+        double start_time = timer.getElapsedMicroseconds();
+
+        for(bird* i:birds){
+            // i->update(birds, eset, bset);
+        }
+
+        double oriented_time = 1000000.0 / eset.LOGIC_FPS;
+        double elapsed_time = timer.getElapsedMicroseconds() - start_time;
+        double remaining_time = oriented_time - elapsed_time;
+        if(remaining_time > 0){
+            if(remaining_time > 1000){
+                Sleep(static_cast<DWORD>((remaining_time-500)/1000));
+            }
+            do {
+                elapsed_time = timer.getElapsedMicroseconds();
+            } while(elapsed_time < oriented_time);
+        }
+    }
+}
+
