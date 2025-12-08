@@ -1,25 +1,25 @@
 {
 	"EnvironmentSetting":
 	{
-		"window_w": 1500,
-		"window_h": 1000,
+		"window_w": 1000,
+		"window_h": 800,
 		"boundary_range": 15,
 		"boundary_force": 140,
-		"dt" : 0.05,
-		"logic_fps": 5,
+		"dt" : 0.03,
+		"logic_fps": 24,
 		"logic_fps_update_speed":0.5,
 		"render_fps": 120,
 		"render_fps_update_speed":0.2,
-		"bird_num": 2000
+		"bird_num": 800
 	},
 	"BirdSetting":
 	{
-		"separation_weight": 0.8,
+		"separation_weight": 1.0,
 		"alignment_weight": 0.8,
-		"cohesion_weight": 0.8,
+		"cohesion_weight": 2.0,
 		"separation_range": 50,
 		"alignment_range": 200,
-		"cohesion_range": 50,
+		"cohesion_range": 80,
 		"v_max": 120,
 		"force_max": 200,
 		"force_min": 5,
