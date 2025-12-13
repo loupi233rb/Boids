@@ -13,7 +13,7 @@
 
 依赖
 - Windows
-- EasyX 图形库（确保 include/lib 路径与构建任务匹配）
+- EasyX 图形库（确保 include/lib 路径与构建任务匹配，注意修改路径）
 - TDM-GCC/MinGW 或其他支持的 GCC 工具链
 
 构建（与 VS Code 任务一致）
@@ -69,13 +69,4 @@ C:\TDM-GCC-64\bin\g++.exe -g -I${PWD}\include -I F:/environment/easyX/include -L
 - VS Code 构建任务：`.vscode/tasks.json`
 
 ## 许可与致谢
-- `include/json.hpp` 使用 nlohmann::json（请保留其原始许可证头部）。
-
-如果你需要，我可以：
-- 把 README 翻译成英文并提交双语版本；
-- 为 `README.md` 加入构建截图或运行示例 GIF；
-- 自动生成并提交一个合适的 `.gitignore` 文件以排除临时与构建文件。
-
-``` 
-（本文件仅保留为新创建的中文 README，原始英文内容已删除）
-```
+- `include/json.hpp` 使用 nlohmann::json
