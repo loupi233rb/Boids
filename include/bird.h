@@ -8,15 +8,14 @@
 #include <cmath>
 #include <random>
 
-template<typename T>
-struct CrossNode;
-
-template<typename T>
-class CrossList;
+#include "crossList.h"
 
 class bird;
+class bird_crossList;
+struct EnvSetting;
+struct BirdSetting;
 
-using grid = std::vector<const bird*>;
+using grid = std::vector<bird*>;
 
 struct vector2{
     double x,y;
@@ -25,13 +24,13 @@ struct vector2{
     vector2 operator-(const vector2& other) const;
     vector2 operator*(float scalar) const;
     vector2 operator/(float num) const;
-    vector2 operator+=(const vector2& other);
-    vector2 operator-=(const vector2& other);
-    vector2 operator*=(float s);
-    vector2 operator/=(float s);
+    vector2& operator+=(const vector2& other);
+    vector2& operator-=(const vector2& other);
+    vector2& operator*=(float s);
+    vector2& operator/=(float s);
     vector2 limit(float maxForce);
-    float distanceTo(const vector2 other) const;
-    float lenth() const;
+    double distanceTo(const vector2 other) const;
+    double lenth() const;
     vector2 rotate(float theta);
     vector2 normalize() const;
     POINT to_POINT();
@@ -88,7 +87,7 @@ public:
     ~bird();
     vector2 getPos() const;
     vector2 getV() const;
-    void update(const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset, const std::vector<CrossList<grid*>*>* gridSet);
+    void update(const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset, const std::vector<bird_crossList> &gridSet);
     void tick_v2_0(const EnvSetting &eset, const BirdSetting &bset);
     void render(const std::vector<vector2> &shape, int point_num);
     void RefreshColor(double max);
@@ -96,13 +95,33 @@ public:
 
 namespace Rule
 {
-    vector2 Separation(bird* self, const std::vector<const bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 Cohesion(bird* self, const std::vector<const bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 Alignment(bird* self, const std::vector<const bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Separation(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
     vector2 ChaseMouse(bird* self, const EnvSetting &eset, const BirdSetting &bset);
     vector2 AvoidBoundary(bird* self, const EnvSetting &eset);
-    vector2 Separation_v2(bird* self, const std::vector<const bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
 }
 
+class bird_crossList:public CrossList<grid>{
+public:
+    int grid_size;
+    bird_crossList(int rows, int cols):CrossList<grid>(rows, cols){};
+    ~bird_crossList();
+    void add(bird* b);
+    void clear_bird();
+};
+
+// 网格划分函数
+std::vector<bird_crossList> DivideGrid(const EnvSetting& eset, const BirdSetting& bset);
+
+// 网格更新
+void GridUpdate(std::vector<bird_crossList> &gridSet, const std::vector<bird*> &boids, const BirdSetting &bset);
+
+// 返回网格范围
+std::vector<bird*> FindNeighborGridBird(const bird_crossList &grids, bird* b);
+
+//回收内存
+void DeleteGrids(std::vector<bird_crossList> &gridSet);
 
 #endif

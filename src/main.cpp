@@ -79,7 +79,7 @@ void ReadSetting(EnvSetting &eset, BirdSetting &bset){
 
 bool RUNNING[2] = {false,false};
 
-std::vector<CrossList<grid*>*>* gridSet;
+std::vector<bird_crossList> gridSet;
 
 vector2 shape[4] = {vector2(3,0),vector2(-2.796,-1.553),vector2(-2.796,1.553)};
 
@@ -121,8 +121,8 @@ int main()
     
     gridSet = DivideGrid(eset, bset);
 
-    std::thread logic_thread(logic_tick_v4_0, std::ref(birds), std::ref(Lfrc), std::ref(eset), std::ref(bset), gridSet, RUNNING);
-    std::thread render_thread(render_tick_v3_0, std::ref(birds), std::ref(Rfrc), std::ref(eset), std::ref(bset), fpsInfo, RUNNING);
+    std::thread logic_thread(logic_tick, std::ref(birds), std::ref(Lfrc), std::ref(eset), std::ref(bset), gridSet, RUNNING);
+    std::thread render_thread(render_tick, std::ref(birds), std::ref(Rfrc), std::ref(eset), std::ref(bset), fpsInfo, RUNNING);
 
     logic_thread.detach();
     render_thread.detach();
@@ -152,7 +152,6 @@ int main()
         _stprintf_s(fpsInfo[1], 7, _T("%3.2f"), Lfrc.getFps());
     }
 
-    // 
     Sleep(1000);
     closegraph();
     // timeEndPeriod(1);

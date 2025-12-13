@@ -29,8 +29,8 @@ void FrameRateController::wait(){
 	auto current_time = clock::now();
 	auto elapsed_time = current_time - this->last_frame_time;
 	auto sleep_time = this->target_frame_time - elapsed_time;
+	// std::this_thread::sleep_until(last_frame_time + target_frame_time);
 	do{
-		// std::this_thread::sleep_until(last_frame_time + target_frame_time);
 		sleep_time = last_frame_time + this->target_frame_time - clock::now();
 	} while(sleep_time > frame_duration::zero());
 	last_frame_time = clock::now();
