@@ -1,24 +1,11 @@
-#ifndef FUNCTHREAD_CPP
-#define FUNCTHREAD_CPP
+#pragma once
 
 #include "bird.h"
 #include "timer.h"
 #include "crossList.h"
+#include "info.h"
 #include <vector>
 
-// 优化时钟性能
-void render_tick(std::vector<bird*> &birds
-    , FrameRateController &Lfrc
-    , const EnvSetting &eset
-    , const BirdSetting &bset
-    , TCHAR fpsInfo[][7]
-    , bool* RUNNING);
+void render_tick(FrameRateController &Lfrc);
 
-void logic_tick(std::vector<bird*> &birds
-    , FrameRateController &Lfrc
-    , const EnvSetting &eset
-    , const BirdSetting &bset
-    , std::vector<bird_crossList> gridSet
-    , bool* RUNNING);
-
-#endif
+void logic_tick(FrameRateController &Lfrc);

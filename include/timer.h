@@ -1,5 +1,4 @@
-#ifndef TIMER_CPP
-#define TIMER_CPP
+#pragma once
 
 #include <windows.h>
 #include <chrono>
@@ -42,4 +41,3 @@ public:
 	double getFps();
 	void outputFps();
 };
-#endif

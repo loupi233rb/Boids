@@ -1,5 +1,4 @@
-#ifndef _CROSS_LIST_H
-#define _CROSS_LIST_H
+#pragma once
 
 #include <iostream>
 #include <vector>
@@ -29,5 +28,3 @@ public:
 };
 
 #include "crossList.tpp"
-
-#endif

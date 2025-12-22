@@ -8,9 +8,9 @@
 		"dt" : 0.03,
 		"logic_fps": 5,
 		"logic_fps_update_speed":0.5,
-		"render_fps": 120,
+		"render_fps": 240,
 		"render_fps_update_speed":0.2,
-		"bird_num": 800
+		"bird_num": 5000
 	},
 	"BirdSetting":
 	{

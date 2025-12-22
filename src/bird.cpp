@@ -1,5 +1,6 @@
 #include "bird.h"
 #include "crossList.h"
+#include "info.h"
 #include <cmath>
 #include <random>
 
@@ -61,15 +62,8 @@ double vector2::distanceTo(const vector2 other) const {
     return sqrt(pow(x-other.x,2)+pow(y-other.y,2));
 };
 
-POINT vector2::to_POINT(){
-    POINT p;
-    p.x = this->x;
-    p.y = this->y;
-    return p;
-};
-
 void vector2::print(){
-    printf("(%f, %f)",&x,&y);
+    printf("(%f, %f)",x,y);
 }
 
 vector2 vector2::rotate(float theta){
@@ -83,11 +77,11 @@ vector2 vector2::rotate(float theta){
 
 
 
-bird::bird(COLORREF c, float s, vector2 initV, vector2 initP){
-    color = c;
+bird::bird(float s, vector2 initV, vector2 initP){
     scale = s;
     position = initP;
     velocity = initV;
+    acceleration = vector2(0.,0.);
     isCaptain = 0;
     gen = std::mt19937(std::random_device{}());
 }
@@ -100,23 +94,23 @@ vector2 bird::getPos() const{return position;}
 
 vector2 bird::getV() const {return velocity;}
 
-// 鸟思考函数
 
+// ******------使用EasyX，已经弃用，改用opengl------******
 // 渲染函数
-void bird::render(const std::vector<vector2> &shape, int point_num){
-    POINT* dot_list;
-    dot_list = new POINT[point_num];
-    vector2 face = this->getV().normalize();
-    for(int i=0;i<point_num;i++){
-        vector2 dots;
-        dots.x = (shape[i].x * face.x - shape[i].y * face.y) * this->scale + this->position.x;
-        dots.y = (shape[i].x * face.y + shape[i].y * face.x) * this->scale + this->position.y;
-        dot_list[i] = dots.to_POINT();
-    }
-    setfillcolor(this->color);
-    solidpolygon(dot_list,point_num);
-    delete [] dot_list;
-}
+// void bird::render(const std::vector<vector2> &shape, int point_num){
+//     POINT* dot_list;
+//     dot_list = new POINT[point_num];
+//     vector2 face = this->getV().normalize();
+//     for(int i=0;i<point_num;i++){
+//         vector2 dots;
+//         dots.x = (shape[i].x * face.x - shape[i].y * face.y) * this->scale + this->position.x;
+//         dots.y = (shape[i].x * face.y + shape[i].y * face.x) * this->scale + this->position.y;
+//         dot_list[i] = dots.to_POINT();
+//     }
+//     setfillcolor(this->color);
+//     solidpolygon(dot_list,point_num);
+//     delete [] dot_list;
+// }
 
 void bird::update(const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset, const std::vector<bird_crossList> &gridSet){
 
@@ -219,7 +213,7 @@ void bird::RefreshColor(double max)
         g = 255 - int(255 * (l-0.75) / 0.25);
         b = 0;
     }
-    this->color = RGB(r,g,b);
+    this->color = glm::vec3(r / 255.0f, g / 255.0f, b / 255.0f);
 }
 
 namespace Birdmath
@@ -285,19 +279,20 @@ namespace Rule
         return ali_vector - self->getV() * bset.a_w;
     };
 
+    // 鼠标位置换为glm::vec2
     vector2 ChaseMouse(bird* self, const EnvSetting &eset, const BirdSetting &bset){
         if(eset.IS_LEFTBUTTON_DOWN){
-            double d = self->getPos().distanceTo(eset.MOUSE_POSITION);
+            double d = self->getPos().distanceTo(vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y));
             if(d > 1.5*bset.mouse_r){
-                return eset.MOUSE_POSITION - self->getPos();
+                return vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y) - self->getPos();
             }
             else if(d <= 1.5 * bset.mouse_r && d >= 0.5 * bset.mouse_r){
-                vector2 chase = eset.MOUSE_POSITION - self->getPos();
+                vector2 chase = vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y) - self->getPos();
                 chase.rotate(M_PI_2);
                 return chase;
             }
             else{
-                return (self->getPos() - eset.MOUSE_POSITION).normalize() * Birdmath::SIP(bset.mouse_r, d);
+                return (self->getPos() - vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y)).normalize() * Birdmath::SIP(bset.mouse_r, d);
             }
         }
         else{
