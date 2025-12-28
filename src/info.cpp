@@ -86,7 +86,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // keep  screen ratio
     glViewport(0, 0, width, height);
-    projection = glm::ortho(0.0f, float(width), 0.0f, float(height), -1.0f, 1.0f);
+    // projection = glm::ortho(0.0f, float(width), 0.0f, float(height), -1.0f, 1.0f);
     screenWidth = width;
     screenHeight = height;
 }
@@ -131,6 +131,8 @@ void InitialSetting(){
     ReadSetting();
 
     window = InitGLFW(eset.MX, eset.MY);
+
+    projection = glm::ortho(0.0f, float(eset.MX), 0.0f, float(eset.MY), -1.0f, 1.0f);
 
     framebuffer_size_callback(window, eset.MX, eset.MY);
 

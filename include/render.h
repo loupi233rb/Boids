@@ -29,7 +29,3 @@ public:
 
     void render(GLFWwindow *window);
 };
-
-
-
-
