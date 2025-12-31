@@ -1,7 +1,6 @@
 #include "bird.h"
 #include "timer.h"
 #include "funcThread.h"
-#include "crossList.h"
 #include "render.h"
 #include "shader.h"
 #include "info.h"
@@ -38,6 +37,9 @@ int main()
     // 计时器
      FrameRateController Rfrc(eset.RENDER_FPS, eset.RENDER_FPS_UPDATE_SPEED);
      FrameRateController Lfrc(eset.LOGIC_FPS, eset.LOGIC_FPS_UPDATE_SPEED);
+    // 网格初始化
+     CellGrid cellgrid;
+     cellgrid.Initialize();
     
     // 所有初始化完成之后，主线程要把OpenGL上下文释放掉，交给渲染线程去使用
     glfwMakeContextCurrent(nullptr);
@@ -45,8 +47,8 @@ int main()
     RUNNING[0] = true;
     RUNNING[1] = true;
 
-    std::thread logic_thread(logic_tick, std::ref(Lfrc));
-    std::thread render_thread(render_tick, std::ref(Rfrc));
+    std::thread logic_thread(logic_tick, std::ref(Lfrc), std::ref(cellgrid));
+    std::thread render_thread(render_tick, std::ref(Rfrc), std::ref(cellgrid));
 
     while(!glfwWindowShouldClose(window))
     {
@@ -63,7 +65,6 @@ int main()
     for(auto *i:birds){
         delete i;
     }
-    DeleteGrids(gridSet);
     
     return 0;
 }

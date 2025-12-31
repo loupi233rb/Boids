@@ -10,6 +10,8 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <vector>
 
+class birdInstance;
+
 class Renderer {
 private:
     GLuint VAO;

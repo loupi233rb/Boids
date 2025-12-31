@@ -4,7 +4,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
-void render_tick(FrameRateController &Rfrc)
+void render_tick(FrameRateController &Rfrc, CellGrid &cellgrid)
 {
     Rfrc.init();
     std::cout<<"Render thread started."<<std::endl;
@@ -12,24 +12,22 @@ void render_tick(FrameRateController &Rfrc)
     while(RUNNING[1]){
         renderer.updateInstances(birds);
         renderer.render(window);
-        for(bird* b : birds){
-            b->tick_v2_0(eset, bset);
-        }
         // 帧数控制器等待
         Rfrc.wait();
     }
 }
 
-void logic_tick(FrameRateController &Lfrc)
+void logic_tick(FrameRateController &Lfrc, CellGrid &cellgrid)
 {
     Lfrc.init();
     std::cout<<"Logic thread started."<<std::endl;
     while(RUNNING[0]){
 
-        GridUpdate(gridSet, birds, bset);
-
+        // GridUpdate(gridSet, birds, bset);
+        cellgrid.refresh();
         for(bird* i:birds){
-            i->update(birds, eset, bset, gridSet);
+            i->tick_v2_0(eset, bset);
+            i->update(cellgrid);
         }
 
         // 帧数控制器等待

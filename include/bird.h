@@ -8,14 +8,12 @@
 #include <cmath>
 #include <random>
 
-#include "crossList.h"
 
 class bird;
-class bird_crossList;
+class CellGrid;
 struct EnvSetting;
 struct BirdSetting;
 
-using grid = std::vector<bird*>;
 
 // 自己写的2D向量结构体，懒得改用glm了
 struct vector2{
@@ -54,7 +52,7 @@ public:
     ~bird();
     vector2 getPos() const;
     vector2 getV() const;
-    void update(const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset, const std::vector<bird_crossList> &gridSet);
+    void update(CellGrid &cellgrid);
     void tick_v2_0(const EnvSetting &eset, const BirdSetting &bset);
     void RefreshColor(double max);
 };
@@ -67,30 +65,47 @@ struct birdInstance{
 namespace Rule
 {
     vector2 Separation(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
     vector2 ChaseMouse(bird* self, const EnvSetting &eset, const BirdSetting &bset);
     vector2 AvoidBoundary(bird* self, const EnvSetting &eset);
-    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
 }
 
-class bird_crossList:public CrossList<grid>{
-public:
-    int grid_size;
-    bird_crossList(int rows, int cols):CrossList<grid>(rows, cols){};
-    ~bird_crossList();
-    void add(bird* b);
-    void clear_bird();
+struct cellnet{
+    int rows;
+    int cols;
+    std::vector<std::vector<bird*>> net;
 };
 
-// 网格划分函数
-std::vector<bird_crossList> DivideGrid(const EnvSetting& eset, const BirdSetting& bset);
+class CellGrid{
+private:
+    cellnet sepnet;
+    cellnet alinet;
+    cellnet cohnet;
+public:
+    void Initialize();
+    void refresh();
+    std::vector<bird*> getNeibors(bird* self, const std::string &type);
+};
 
-// 网格更新
-void GridUpdate(std::vector<bird_crossList> &gridSet, const std::vector<bird*> &boids, const BirdSetting &bset);
+// class bird_crossList:public CrossList<grid>{
+// public:
+//     int grid_size;
+//     bird_crossList(int rows, int cols):CrossList<grid>(rows, cols){};
+//     ~bird_crossList();
+//     void add(bird* b);
+//     void clear_bird();
+// };
 
-// 返回网格范围
-std::vector<bird*> FindNeighborGridBird(const bird_crossList &grids, bird* b);
+// // 网格划分函数
+// std::vector<bird_crossList> DivideGrid(const EnvSetting& eset, const BirdSetting& bset);
 
-//回收内存
-void DeleteGrids(std::vector<bird_crossList> &gridSet);
+// // 网格更新
+// void GridUpdate(std::vector<bird_crossList> &gridSet, const std::vector<bird*> &boids, const BirdSetting &bset);
+
+// // 返回网格范围
+// std::vector<bird*> FindNeighborGridBird(const bird_crossList &grids, bird* b);
+
+// //回收内存
+// void DeleteGrids(std::vector<bird_crossList> &gridSet);

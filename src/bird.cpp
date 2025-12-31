@@ -1,5 +1,4 @@
 #include "bird.h"
-#include "crossList.h"
 #include "info.h"
 #include <cmath>
 #include <random>
@@ -112,33 +111,15 @@ vector2 bird::getV() const {return velocity;}
 //     delete [] dot_list;
 // }
 
-void bird::update(const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset, const std::vector<bird_crossList> &gridSet){
+void bird::update(CellGrid &cellgrid){
 
+    std::vector<bird*> sep_bird = cellgrid.getNeibors(this, "separation");
+    std::vector<bird*> ali_bird = cellgrid.getNeibors(this, "alignment");
+    std::vector<bird*> coh_bird = cellgrid.getNeibors(this, "cohesion");
 
-    std::vector<bird*> sep_bird = FindNeighborGridBird(gridSet[0], this);
-    std::vector<bird*> ali_bird = FindNeighborGridBird(gridSet[1], this);
-    std::vector<bird*> coh_bird = FindNeighborGridBird(gridSet[2], this);
-
-
-    std::vector<double> sep_distance;
-    std::vector<double> ali_distance;
-    std::vector<double> coh_distance;
-    for(auto *i:sep_bird){
-        if(i == this) sep_distance.push_back(0.);
-        else sep_distance.push_back(position.distanceTo(i->getPos()));
-    }
-    for(auto *i:ali_bird){
-        if(i == this) ali_distance.push_back(0.);
-        else ali_distance.push_back(position.distanceTo(i->getPos()));
-    }
-    for(auto *i:coh_bird){
-        if(i == this) coh_distance.push_back(0.);
-        else coh_distance.push_back(position.distanceTo(i->getPos()));
-    }
-
-    vector2 s = Rule::Separation_v2(this, sep_bird, sep_distance, eset, bset) * bset.s_w;
-    vector2 a = Rule::Alignment(this, ali_bird, ali_distance, eset, bset) * bset.a_w;
-    vector2 c = Rule::Cohesion(this, coh_bird, coh_distance, eset, bset) * bset.c_w;
+    vector2 s = Rule::Separation_v2(this, sep_bird, eset, bset) * bset.s_w;
+    vector2 a = Rule::Alignment(this, ali_bird, eset, bset) * bset.a_w;
+    vector2 c = Rule::Cohesion(this, coh_bird, eset, bset) * bset.c_w;
     vector2 chase = Rule::ChaseMouse(this, eset, bset);
     vector2 avoidance = Rule::AvoidBoundary(this, eset);
 
@@ -151,11 +132,6 @@ void bird::update(const std::vector<bird*> &boids, const EnvSetting &eset, const
         a.zero();
         c.zero();
     }
-
-    // double sac_force = (s+a+c).lenth();
-    // s = s.normalize() * sac_force * bset.s_w;
-    // a = a.normalize() * sac_force * bset.a_w;
-    // c = c.normalize() * sac_force * bset.c_w;
 
     std::normal_distribution<> ldist(0,0.5);
     std::normal_distribution<> rdist(0,M_PI/24);
@@ -182,8 +158,8 @@ void bird::tick_v2_0(const EnvSetting &eset, const BirdSetting &bset){
 
     if(position.x < 0) position.x = 0;
     if(position.y < 0) position.y = 0;
-    if(position.x > eset.MX) position.x = eset.MX;
-    if(position.y > eset.MY) position.y = eset.MY;
+    if(position.x >= eset.MX) position.x = eset.MX - 1e-3;
+    if(position.y >= eset.MY) position.y = eset.MY - 1e-3;
 
     // 更新颜色
     this->RefreshColor(bset.v_max);
@@ -240,24 +216,26 @@ namespace Rule
         return (self->getPos() - sep_vector).normalize() * Birdmath::SIP(10., (self->getPos() - sep_vector).lenth());
     };
 
-    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
+    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
         vector2 sep_force(0,0);
-        for(int i = 0;i<boids.size();i++){
-            if(boids[i] == self) continue;
-            if(distance[i] < bset.s_r && distance[i] > 1e-3f){
-                sep_force += (self->getPos() - boids[i]->getPos()) / distance[i] * bset.s_r;
+        for(auto *i: boids){
+            if(i == self) continue;
+            double distance = self->getPos().distanceTo(i->getPos());
+            if(distance < bset.s_r && distance > 1e-3f){
+                sep_force += (self->getPos() - i->getPos()) / distance * bset.s_r;
             }
         }
         return sep_force;
     }
 
-    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
+    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
         vector2 coh_vector(0, 0);
         int coh_count = 0;
-        for(int i = 0;i < boids.size();i++){
-            if(boids[i] == self) continue;
-            if(distance[i] < bset.c_r && distance[i] > 1e-3f){
-                coh_vector += boids[i]->getPos();
+        for(auto *i: boids){
+            if(i == self) continue;
+            double distance = self->getPos().distanceTo(i->getPos());
+            if(distance < bset.c_r && distance > 1e-3f){
+                coh_vector += i->getPos();
                 coh_count++;
             }
         }
@@ -265,13 +243,14 @@ namespace Rule
         return coh_vector - self->getPos();
     };
 
-    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
+    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
         vector2 ali_vector(0,0);
         int ali_count = 0;
-        for(int i = 0;i < boids.size();i++){
-            if(boids[i] == self) continue;
-            if(distance[i] < bset.a_r){
-                ali_vector += boids[i]->getV();
+        for(auto *i: boids){
+            if(i == self) continue;
+            double distance = self->getPos().distanceTo(i->getPos());
+            if(distance < bset.a_r){
+                ali_vector += i->getV();
                 ali_count++;
             }
         }
@@ -310,87 +289,170 @@ namespace Rule
     }
 }
 
-bird_crossList::~bird_crossList() = default;
+void CellGrid::Initialize(){
+    sepnet.rows = std::ceil(eset.MX / bset.s_r);
+    sepnet.cols = std::ceil(eset.MY / bset.s_r);
+    sepnet.net.resize(sepnet.rows * sepnet.cols);
 
-void bird_crossList::add(bird* b)
-{
-    int r, c;
-    r = int(std::floor(b->getPos().x / grid_size));
-    c = int(std::floor(b->getPos().y / grid_size));
-    grid* g;
-    g = this->get(r, c);
-    if(g != nullptr) g->push_back(b);
-};
+    alinet.rows = std::ceil(eset.MX / bset.a_r);
+    alinet.cols = std::ceil(eset.MY / bset.a_r);
+    alinet.net.resize(alinet.rows * alinet.cols);
 
-void bird_crossList::clear_bird()
-{
-    for(int i=0;i<rows;i++){
-        for(auto* p = row[i]; p; p = p->right){
-            if (p->data) p->data->clear(); // 仅清数据，不新建节点
-        }
-    }
-};
-
-// 网格划分函数
-std::vector<bird_crossList> DivideGrid(const EnvSetting& eset, const BirdSetting& bset)
-{
-    std::vector<bird_crossList> gridSet;
-    bird_crossList sg(std::ceil(eset.MX / bset.s_r), std::ceil(eset.MY / bset.s_r));
-    bird_crossList ag(std::ceil(eset.MX / bset.a_r), std::ceil(eset.MY / bset.a_r));
-    bird_crossList cg(std::ceil(eset.MX / bset.c_r), std::ceil(eset.MY / bset.c_r));
-    sg.grid_size = bset.s_r;
-    ag.grid_size = bset.a_r;
-    cg.grid_size = bset.c_r;
-    sg.clear_bird();
-    ag.clear_bird();
-    cg.clear_bird();
-    gridSet.push_back(sg);
-    gridSet.push_back(ag);
-    gridSet.push_back(cg);
-    return gridSet;
+    cohnet.rows = std::ceil(eset.MX / bset.c_r);
+    cohnet.cols = std::ceil(eset.MY / bset.c_r);
+    cohnet.net.resize(cohnet.rows * cohnet.cols);
 }
 
-// 网格更新
-void GridUpdate(std::vector<bird_crossList> &gridSet, const std::vector<bird*> &boids, const BirdSetting& bset)
-{
-    for(int i=0;i<3;i++) gridSet[i].clear_bird();
-    for(auto *i:boids){
-        gridSet[0].add(i);
-        gridSet[1].add(i);
-        gridSet[2].add(i);
+void CellGrid::refresh(){
+    for(auto &cell : sepnet.net){
+        cell.clear();
     }
-}
-
-// 寻找邻居
-std::vector<bird*> FindNeighborGridBird(const bird_crossList &grids, bird* b)
-{
-    int r, c;
-    std::vector<grid*> all_grid;
-    r = std::ceil(b->getPos().x / grids.grid_size);
-    c = std::ceil(b->getPos().y / grids.grid_size);
-    int all[2][9] = {{0,1,0,-1, 0,1, 1,-1,-1}
-                    ,{0,0,1, 0,-1,1,-1, 1,-1}};
-    for(int i=0;i<9;i++){
-        grid* current;
-        current = const_cast<bird_crossList&>(grids).get(r + all[0][i], c + all[1][i]);
-        if(current != nullptr){
-            all_grid.push_back(current);
-        }
+    for(auto &cell : alinet.net){
+        cell.clear();
+    }
+    for(auto &cell : cohnet.net){
+        cell.clear();
     }
     
-    std::vector<bird*> all_bird;
-    for(auto *i:all_grid){
-        all_bird.insert(all_bird.end(), i->begin(), i->end());
+    for(auto *b : birds){
+        int r, c, idx;
+        // separation
+        r = std::floor(b->getPos().x / bset.s_r);
+        c = std::floor(b->getPos().y / bset.s_r);
+        idx = r * sepnet.cols + c;
+        sepnet.net[idx].push_back(b);
+        // alignment
+        r = std::floor(b->getPos().x / bset.a_r);
+        c = std::floor(b->getPos().y / bset.a_r);
+        idx = r * alinet.cols + c;
+        alinet.net[idx].push_back(b);
+        // cohesion
+        r = std::floor(b->getPos().x / bset.c_r);
+        c = std::floor(b->getPos().y / bset.c_r);
+        idx = r * cohnet.cols + c;
+        cohnet.net[idx].push_back(b);
     }
-    all_grid.clear();
-    return all_bird;
 }
 
-// 回收内存
-void DeleteGrids(std::vector<bird_crossList> &gridSet)
-{
-    for(auto i:gridSet){
-        i.clear();
+std::vector<bird*> CellGrid::getNeibors(bird* self, const std::string &type){
+    std::vector<bird*> neighbors;
+    int r, c, idx;
+    cellnet targetnet;
+    int grid_size;
+    if(type == "separation"){
+        targetnet = sepnet;
+        grid_size = bset.s_r;
     }
-    gridSet.clear();
+    else if(type == "alignment"){
+        targetnet = alinet;
+        grid_size = bset.a_r;
+    }
+    else if(type == "cohesion"){
+        targetnet = cohnet;
+        grid_size = bset.c_r;
+    }
+    else{
+        return neighbors;
+    }
+
+    r = std::floor(self->getPos().x / grid_size);
+    c = std::floor(self->getPos().y / grid_size);
+
+    for(int i = -1; i <= 1; i++){
+        for(int j = -1; j <= 1; j++){
+            int nr = r + i;
+            int nc = c + j;
+            if(nr >= 0 && nr < targetnet.rows && nc >= 0 && nc < targetnet.cols){
+                idx = nr * targetnet.cols + nc;
+                neighbors.insert(neighbors.end(), targetnet.net[idx].begin(), targetnet.net[idx].end());
+            }
+        }
+    }
+    return neighbors;
 }
+
+
+// bird_crossList::~bird_crossList() = default;
+
+// void bird_crossList::add(bird* b)
+// {
+//     int r, c;
+//     r = int(std::floor(b->getPos().x / grid_size));
+//     c = int(std::floor(b->getPos().y / grid_size));
+//     grid* g;
+//     g = this->get(r, c);
+//     if(g != nullptr) g->push_back(b);
+// };
+
+// void bird_crossList::clear_bird()
+// {
+//     for(int i=0;i<rows;i++){
+//         for(auto* p = row[i]; p; p = p->right){
+//             if (p->data) p->data->clear(); // 仅清数据，不新建节点
+//         }
+//     }
+// };
+
+// // 网格划分函数
+// std::vector<bird_crossList> DivideGrid(const EnvSetting& eset, const BirdSetting& bset)
+// {
+//     std::vector<bird_crossList> gridSet;
+//     bird_crossList sg(std::ceil(eset.MX / bset.s_r), std::ceil(eset.MY / bset.s_r));
+//     bird_crossList ag(std::ceil(eset.MX / bset.a_r), std::ceil(eset.MY / bset.a_r));
+//     bird_crossList cg(std::ceil(eset.MX / bset.c_r), std::ceil(eset.MY / bset.c_r));
+//     sg.grid_size = bset.s_r;
+//     ag.grid_size = bset.a_r;
+//     cg.grid_size = bset.c_r;
+//     sg.clear_bird();
+//     ag.clear_bird();
+//     cg.clear_bird();
+//     gridSet.push_back(sg);
+//     gridSet.push_back(ag);
+//     gridSet.push_back(cg);
+//     return gridSet;
+// }
+
+// // 网格更新
+// void GridUpdate(std::vector<bird_crossList> &gridSet, const std::vector<bird*> &boids, const BirdSetting& bset)
+// {
+//     for(int i=0;i<3;i++) gridSet[i].clear_bird();
+//     for(auto *i:boids){
+//         gridSet[0].add(i);
+//         gridSet[1].add(i);
+//         gridSet[2].add(i);
+//     }
+// }
+
+// // 寻找邻居
+// std::vector<bird*> FindNeighborGridBird(const bird_crossList &grids, bird* b)
+// {
+//     int r, c;
+//     std::vector<grid*> all_grid;
+//     r = std::ceil(b->getPos().x / grids.grid_size);
+//     c = std::ceil(b->getPos().y / grids.grid_size);
+//     int all[2][9] = {{0,1,0,-1, 0,1, 1,-1,-1}
+//                     ,{0,0,1, 0,-1,1,-1, 1,-1}};
+//     for(int i=0;i<9;i++){
+//         grid* current;
+//         current = const_cast<bird_crossList&>(grids).get(r + all[0][i], c + all[1][i]);
+//         if(current != nullptr){
+//             all_grid.push_back(current);
+//         }
+//     }
+    
+//     std::vector<bird*> all_bird;
+//     for(auto *i:all_grid){
+//         all_bird.insert(all_bird.end(), i->begin(), i->end());
+//     }
+//     all_grid.clear();
+//     return all_bird;
+// }
+
+// // 回收内存
+// void DeleteGrids(std::vector<bird_crossList> &gridSet)
+// {
+//     for(auto i:gridSet){
+//         i.clear();
+//     }
+//     gridSet.clear();
+// }

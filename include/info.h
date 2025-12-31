@@ -32,9 +32,9 @@ struct BirdSetting{
     float s_w = 1.0;              // separation weight
     float a_w = 0.8;              // alignment weight
     float c_w = 0.8;              // cohesion weight
-    int s_r = 50;                 // separation range
-    int a_r = 200;                // alignment range
-    int c_r = 80;                 // cohesion range
+    float s_r = 50.0;                 // separation range
+    float a_r = 200.0;                // alignment range
+    float c_r = 80.0;                 // cohesion range
     double v_max = 120;           // max velocity
     double f_max = 200;           // max force
     double f_min = 5;             // min force
@@ -57,7 +57,7 @@ extern BirdSetting bset;
 
 extern bool RUNNING[2];
 
-extern std::vector<bird_crossList> gridSet;
+// extern std::vector<bird_crossList> gridSet;
 
 extern std::vector<bird*> birds;
 

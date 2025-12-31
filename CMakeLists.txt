@@ -10,6 +10,7 @@ file(GLOB EasyXLib F:/environment/easyX/lib/*.a)
 
 add_subdirectory(external/glm)
 add_subdirectory(external/stb_image)
+add_subdirectory(test)
 
 add_executable(Boid ${SOURCE})
 

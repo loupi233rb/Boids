@@ -12,7 +12,7 @@ BirdSetting bset;
 
 bool RUNNING[2];
 
-std::vector<bird_crossList> gridSet;
+// std::vector<bird_crossList> gridSet;
 
 std::vector<bird*> birds;
 
@@ -151,7 +151,7 @@ void InitialSetting(){
         b = new bird(3, v, p);
         birds.push_back(b);
     }
-    gridSet = DivideGrid(eset, bset);
+    // gridSet = DivideGrid(eset, bset);
     renderer.initShader("./../shader/boids.vs", "./../shader/boids.fs");
     renderer.initBuffers();
     renderer.shader.setMat4("projection", projection);
