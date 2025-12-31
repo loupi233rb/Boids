@@ -62,3 +62,7 @@ void FrameRateController::init()
 {
     this->last_frame_time = clock::now();
 }
+
+double FrameRateController::getLERP(){
+	return std::chrono::duration_cast<std::chrono::duration<double>>(clock::now() - last_frame_time).count() / target_frame_time.count();
+}

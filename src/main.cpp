@@ -34,9 +34,6 @@ int main()
     if(window == nullptr){
         return -1;
     }
-    // 计时器
-     FrameRateController Rfrc(eset.RENDER_FPS, eset.RENDER_FPS_UPDATE_SPEED);
-     FrameRateController Lfrc(eset.LOGIC_FPS, eset.LOGIC_FPS_UPDATE_SPEED);
     // 网格初始化
      CellGrid cellgrid;
      cellgrid.Initialize();
@@ -46,9 +43,11 @@ int main()
 
     RUNNING[0] = true;
     RUNNING[1] = true;
+    RUNNING[2] = true;
 
-    std::thread logic_thread(logic_tick, std::ref(Lfrc), std::ref(cellgrid));
-    std::thread render_thread(render_tick, std::ref(Rfrc), std::ref(cellgrid));
+    std::thread tick_thread(tick);
+    std::thread render_thread(render_tick);
+    std::thread ai_thread(ai_tick, std::ref(cellgrid));
 
     while(!glfwWindowShouldClose(window))
     {
@@ -58,9 +57,11 @@ int main()
     
     RUNNING[0] = false;
     RUNNING[1] = false;
+    RUNNING[2] = false;
 
-    logic_thread.join();
+    tick_thread.join();
     render_thread.join();
+    ai_thread.join();
 
     for(auto *i:birds){
         delete i;

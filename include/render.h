@@ -27,7 +27,7 @@ public:
     ~Renderer();
     void initShader(const char* vertexPath, const char* fragmentPath);
     void initBuffers();
-    void updateInstances(const std::vector<bird*> &birds);
+    void updateInstances();
 
     void render(GLFWwindow *window);
 };

@@ -35,9 +35,11 @@ public:
 		,start_count_time(clock::now())
 		,target_frame_time(1.0 / target_frame_rate)
 		,target_output_time(target_gap){}
+	FrameRateController() = default;
     void init();
 	void wait();
 	void UpgrateFrameCount();
 	double getFps();
 	void outputFps();
+	double getLERP();
 };

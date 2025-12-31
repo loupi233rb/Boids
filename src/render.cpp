@@ -53,22 +53,34 @@ void Renderer::initBuffers(){
     glBindVertexArray(0);
 }
 
-void Renderer::updateInstances(const std::vector<bird*> &birds){
+inline double wrapPi(double a){
+    while (a >  glm::pi<double>()) a -= 2*glm::pi<double>();
+    while (a < -glm::pi<double>()) a += 2*glm::pi<double>();
+    return a;
+}
+
+inline double lerpAngle(double a, double b, double t){
+    float d = wrapPi(b - a);     // 最短角差
+    return a + d * t;
+}
+
+void Renderer::updateInstances(){
+    double t = Lfrc.getLERP();
+    t = std::clamp(t, 0.0, 1.0);
     instances.clear();
     for(const auto& b : birds){
         birdInstance instance;
         glm::mat4 model = glm::mat4(1.0f);
         float theta = std::atan2(b->getV().y, b->getV().x);
-        model = glm::translate(model, glm::vec3(b->getPos().x, b->getPos().y, 0.0f));
-        // b->getPos().print();
-        // model = glm::translate(model, glm::vec3(screenWidth / 2.0f, screenHeight / 2.0f, 0.0f));
+        float prevTheta = std::atan2(b->prevVelocity.y, b->prevVelocity.x);
+        theta = lerpAngle(prevTheta, theta, (float)t);
+        vector2 interpPos = b->prevPosition * (1.0 - t) + b->getPos() * t;
+        model = glm::translate(model, glm::vec3(interpPos.x, interpPos.y, 0.0f));
         model = glm::rotate(model, theta, glm::vec3(0.0f, 0.0f, 1.0f));
-        float scale = 10.0f; // 或更大
+        float scale = 10.0f;
         model = glm::scale(model, glm::vec3(scale, scale, 1.0f));
         instance.model = model;
-        // Assuming bird has a method to get color as glm::vec4
         instance.color = glm::vec4(b->color, 1.0f);
-        // std::cout<<b->color.r<<" "<<b->color.g<<" "<<b->color.b<<std::endl;
         instances.push_back(instance);
     }
 }

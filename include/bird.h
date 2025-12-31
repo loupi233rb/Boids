@@ -48,12 +48,14 @@ private:
     std::mt19937 gen;
 public:
     glm::vec3 color;
+    vector2 prevPosition;
+    vector2 prevVelocity;
     bird(float s, vector2 initV, vector2 initP);
     ~bird();
     vector2 getPos() const;
     vector2 getV() const;
     void update(CellGrid &cellgrid);
-    void tick_v2_0(const EnvSetting &eset, const BirdSetting &bset);
+    void tick_v2_0();
     void RefreshColor(double max);
 };
 

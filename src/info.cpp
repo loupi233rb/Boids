@@ -1,5 +1,6 @@
 #include "info.h"
 #include "bird.h"
+#include "timer.h"
 
 #include <iostream>
 #include <fstream>
@@ -10,7 +11,7 @@ int screenHeight;
 EnvSetting eset;
 BirdSetting bset;
 
-bool RUNNING[2];
+bool RUNNING[3];
 
 // std::vector<bird_crossList> gridSet;
 
@@ -22,6 +23,10 @@ GLFWwindow* window;
 
 glm::mat4 view = glm::mat4(1.0f);
 glm::mat4 projection;
+
+FrameRateController Rfrc;
+FrameRateController Lfrc;
+FrameRateController Afrc;
 
 // 读取配置文件
 void ReadSetting(){
@@ -40,6 +45,7 @@ void ReadSetting(){
             eset.DT = temp.at("dt");
             eset.LOGIC_FPS = temp.at("logic_fps");
             eset.RENDER_FPS = temp.at("render_fps");
+            eset.AI_FPS = temp.at("ai_fps");
             eset.BIRD_NUM = temp.at("bird_num");
             eset.LOGIC_FPS_UPDATE_SPEED = temp.at("logic_fps_update_speed");
             eset.RENDER_FPS_UPDATE_SPEED = temp.at("render_fps_update_speed");
@@ -122,6 +128,7 @@ GLFWwindow *InitGLFW(int screenWidth, int screenHeight){
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
 
     glDisable(GL_DEPTH_TEST);
+    glfwSwapInterval(0); // 0 = no vsync
 
     return window;
 }
@@ -132,12 +139,17 @@ void InitialSetting(){
 
     window = InitGLFW(eset.MX, eset.MY);
 
+    Lfrc = FrameRateController(eset.LOGIC_FPS, eset.LOGIC_FPS_UPDATE_SPEED);
+    Rfrc = FrameRateController(eset.RENDER_FPS, eset.RENDER_FPS_UPDATE_SPEED);
+    Afrc = FrameRateController(eset.AI_FPS, 0.5);
+
     projection = glm::ortho(0.0f, float(eset.MX), 0.0f, float(eset.MY), -1.0f, 1.0f);
 
     framebuffer_size_callback(window, eset.MX, eset.MY);
 
     RUNNING[0] = false;
     RUNNING[1] = false;
+    RUNNING[2] = false;
 
     srand((unsigned int)time(NULL));
     // 创建鸟群

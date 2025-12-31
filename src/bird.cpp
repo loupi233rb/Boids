@@ -79,7 +79,9 @@ vector2 vector2::rotate(float theta){
 bird::bird(float s, vector2 initV, vector2 initP){
     scale = s;
     position = initP;
+    prevPosition = initP;
     velocity = initV;
+    prevVelocity = initV;
     acceleration = vector2(0.,0.);
     isCaptain = 0;
     gen = std::mt19937(std::random_device{}());
@@ -140,27 +142,28 @@ void bird::update(CellGrid &cellgrid){
     acceleration = (s + a + c + chase + avoidance).normalize().rotate(rdist(gen)) * force;
 };
 
-void bird::tick_v2_0(const EnvSetting &eset, const BirdSetting &bset){
+inline void limitPos(vector2& vec){
+    if(vec.x < 0) vec.x = 0;
+    if(vec.y < 0) vec.y = 0;
+    if(vec.x >= eset.MX) vec.x = eset.MX - 1e-3;
+    if(vec.y >= eset.MY) vec.y = eset.MY - 1e-3;
+}
+
+void bird::tick_v2_0(){
     if(acceleration.lenth() > bset.f_max){
         acceleration = acceleration.normalize() * bset.f_max;
     }
     if(acceleration.lenth() < bset.f_min){
         acceleration = vector2(0.,0.);
     }
-
-    velocity += acceleration * eset.DT * 60 / eset.RENDER_FPS;
-
+    prevVelocity = velocity;
+    velocity += acceleration * eset.DT;
     if(velocity.lenth() > bset.v_max){
         velocity = velocity.normalize() * bset.v_max;
     }
-
-    position += velocity * eset.DT * 60 / eset.RENDER_FPS;
-
-    if(position.x < 0) position.x = 0;
-    if(position.y < 0) position.y = 0;
-    if(position.x >= eset.MX) position.x = eset.MX - 1e-3;
-    if(position.y >= eset.MY) position.y = eset.MY - 1e-3;
-
+    prevPosition = position;
+    position += velocity * eset.DT;
+    limitPos(position);
     // 更新颜色
     this->RefreshColor(bset.v_max);
 };

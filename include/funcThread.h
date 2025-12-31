@@ -1,10 +1,12 @@
 #pragma once
 
 #include "bird.h"
-#include "timer.h"
+#include "time.h"
 #include "info.h"
 #include <vector>
 
-void render_tick(FrameRateController &Lfrc, CellGrid &cellgrid);
+void render_tick();
 
-void logic_tick(FrameRateController &Lfrc, CellGrid &cellgrid);
+void tick();
+
+void ai_tick(CellGrid &cellgrid);
