@@ -66,3 +66,33 @@ void FrameRateController::init()
 double FrameRateController::getLERP(){
 	return std::chrono::duration_cast<std::chrono::duration<double>>(clock::now() - last_frame_time).count() / target_frame_time.count();
 }
+
+bool FrameRateController::readyToUpdate(){
+	auto gap = clock::now() - last_frame_time;
+
+}
+
+GTimer::GTimer(double rate, int maxstep){
+	this->deltaTime = duration(1.0 / rate);
+	this->maxStep = maxstep;
+	this->curStep = 0;
+	this->accumulator = duration::zero();
+}
+
+void GTimer::reset(){
+	this->startTime = clock::now();
+	this->accumulator = duration::zero();
+	this->curStep = 0;
+}
+
+void GTimer::step(void (*func)()){
+	clock::time_point current = clock::now();
+	this->accumulator += std::chrono::duration_cast<duration>(current - this->startTime);
+	startTime = current;
+	while(this->accumulator >= this->deltaTime && this->curStep < this->maxStep){
+		this->accumulator -= this->deltaTime;
+		this->curStep++;
+		func();
+	}
+	this->curStep = 0;
+}

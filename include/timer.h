@@ -42,4 +42,21 @@ public:
 	double getFps();
 	void outputFps();
 	double getLERP();
+	bool readyToUpdate();
+};
+
+class GTimer
+{
+private:
+	using clock = std::chrono::high_resolution_clock;
+	using duration = std::chrono::duration<double, std::ratio<1>>;
+	clock::time_point startTime;
+	duration accumulator;
+	duration deltaTime;
+	int curStep;
+	int maxStep;
+public:
+	GTimer(double rate = 20, int maxstep = 5);
+	void reset();
+	void step(void (*func)());
 };
