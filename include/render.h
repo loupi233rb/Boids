@@ -14,20 +14,22 @@ class birdInstance;
 
 class Renderer {
 private:
-    GLuint VAO;
+    GLuint VAO[2];
     GLuint shapeVBO, shapeEBO;
     GLuint instanceVBO[2];
     std::vector<birdInstance> instances;
 public:
     Shader shader;
+    bool start;
     int curWrite, curDraw;
     Renderer(){
         curWrite = 0;
-        curDraw = 1;}
+        curDraw = 1;
+        start = true;}
     ~Renderer();
     void initShader(const char* vertexPath, const char* fragmentPath);
     void initBuffers();
     void updateInstances();
-
+    void bindDoubleBufferVBO(GLuint vao, GLuint shapeVBO, GLuint shapeEBO, GLuint instanceVBO);
     void render(GLFWwindow *window);
 };

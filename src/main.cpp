@@ -44,7 +44,7 @@ int main()
 
     std::thread tick_thread(tick);
     std::thread render_thread(render_tick);
-    // std::thread ai_thread(ai_tick, std::ref(cellgrid));
+    std::thread ai_thread(ai_tick);
 
     while(!glfwWindowShouldClose(window))
     {
@@ -58,7 +58,7 @@ int main()
 
     tick_thread.join();
     render_thread.join();
-    // ai_thread.join();
+    ai_thread.join();
 
     for(auto *i:birds){
         delete i;

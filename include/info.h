@@ -79,6 +79,4 @@ extern GTimer Afrc;
 extern glm::mat4 view;
 extern glm::mat4 projection;
 
-extern std::shared_mutex birds_mutex;
-
 extern CellGrid cellgrid;

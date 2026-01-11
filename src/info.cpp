@@ -13,8 +13,6 @@ BirdSetting bset;
 
 bool RUNNING[3];
 
-// std::vector<bird_crossList> gridSet;
-
 std::vector<bird*> birds;
 
 Renderer renderer;
@@ -27,8 +25,6 @@ glm::mat4 projection;
 GTimer Rfrc;
 GTimer Lfrc;
 GTimer Afrc;
-
-std::shared_mutex birds_mutex;
 
 CellGrid cellgrid;
 
@@ -159,7 +155,6 @@ void InitialSetting(){
 
     srand((unsigned int)time(NULL));
     // 创建鸟群
-    birds_mutex.lock();
     for(int i=0;i<eset.BIRD_NUM;i++){
         int rx = rand() % eset.MX;
         int ry = rand() % eset.MY;
@@ -170,8 +165,6 @@ void InitialSetting(){
         b = new bird(3, v, p);
         birds.push_back(b);
     }
-    birds_mutex.unlock();
-    // gridSet = DivideGrid(eset, bset);
     renderer.initShader("./../shader/boids.vs", "./../shader/boids.fs");
     renderer.initBuffers();
     renderer.shader.setMat4("projection", projection);
