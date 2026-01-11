@@ -79,20 +79,35 @@ GTimer::GTimer(double rate, int maxstep){
 	this->accumulator = duration::zero();
 }
 
-void GTimer::reset(){
+void GTimer::init(){
 	this->startTime = clock::now();
 	this->accumulator = duration::zero();
 	this->curStep = 0;
 }
 
-void GTimer::step(void (*func)()){
+void GTimer::addTask(const std::function<void()>& task){
+	this->tasks.push_back(task);
+}
+
+void GTimer::step(){
 	clock::time_point current = clock::now();
 	this->accumulator += std::chrono::duration_cast<duration>(current - this->startTime);
 	startTime = current;
-	while(this->accumulator >= this->deltaTime && this->curStep < this->maxStep){
+	while(this->accumulator >= this->deltaTime){
 		this->accumulator -= this->deltaTime;
 		this->curStep++;
-		func();
+		if(this->curStep > this->maxStep){
+			this->accumulator = duration::zero();
+			break;
+		}
+		for(auto &task:tasks){
+			task();
+		}
 	}
 	this->curStep = 0;
+	return;
+}
+
+double GTimer::getLERP(){
+	return this->accumulator.count() / this->deltaTime.count();
 }

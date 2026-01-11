@@ -2,6 +2,7 @@
 
 #include <windows.h>
 #include <chrono>
+#include <functional>
 
 class HighPrecisionTimer {
 private:
@@ -55,8 +56,11 @@ private:
 	duration deltaTime;
 	int curStep;
 	int maxStep;
+	std::vector<std::function<void()>> tasks;
 public:
 	GTimer(double rate = 20, int maxstep = 5);
-	void reset();
-	void step(void (*func)());
+	void init();
+	void addTask(const std::function<void()>& task);
+	void step();
+	double getLERP();
 };

@@ -7,36 +7,32 @@
 void render_tick()
 {
     Rfrc.init();
+    Rfrc.addTask([](){renderer.updateInstances();});
+    Rfrc.addTask([&](){renderer.render(window);});
     std::cout<<"Render thread started."<<std::endl;
     glfwMakeContextCurrent(window);
     while(RUNNING[1]){
-        renderer.updateInstances();
-        renderer.render(window);
-        // 帧数控制器等待
-        Rfrc.wait();
+        Rfrc.step();
     }
 }
 
 void tick()
 {
     Lfrc.init();
+    Lfrc.addTask([](){for(bird*i:birds) {i->tick_v2_0();}});
+    Lfrc.addTask([](){cellgrid.refresh();});
+    Lfrc.addTask([](){for(bird* i:birds){i->update(cellgrid);}});
     std::cout<<"Tick thread started."<<std::endl;
     while(RUNNING[0]){
-        for(bird* i:birds){
-            i->tick_v2_0();
-        }
-        Lfrc.wait();
+        Lfrc.step();
     }
 }
-void ai_tick(CellGrid &cellgrid)
-{
-    Afrc.init();
-    std::cout<<"AI thread started."<<std::endl;
-    while(RUNNING[2]){
-        cellgrid.refresh();
-        for(bird* i:birds){
-            i->update(cellgrid);
-        }
-        Afrc.wait();
-    }
-}
+// void ai_tick(CellGrid &cellgrid)
+// {
+//     Afrc.init();
+    
+//     std::cout<<"AI thread started."<<std::endl;
+//     while(RUNNING[2]){
+//         Afrc.step();
+//     }
+// }

@@ -9,4 +9,4 @@ void render_tick();
 
 void tick();
 
-void ai_tick(CellGrid &cellgrid);
+// void ai_tick(CellGrid &cellgrid);

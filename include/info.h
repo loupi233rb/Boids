@@ -2,8 +2,10 @@
 
 #include "render.h"
 #include "timer.h"
+#include "bird.h"
 #include <vector>
 #include <cmath>
+#include <shared_mutex>
 
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
@@ -12,6 +14,7 @@
 #include <json.hpp>
 
 class FrameRateController;
+class GTimer;
 
 // 环境设置
 struct EnvSetting{
@@ -69,9 +72,13 @@ extern Renderer renderer;
 
 extern GLFWwindow* window;
 
-extern FrameRateController Rfrc;
-extern FrameRateController Lfrc;
-extern FrameRateController Afrc;
+extern GTimer Rfrc;
+extern GTimer Lfrc;
+extern GTimer Afrc;
 
 extern glm::mat4 view;
 extern glm::mat4 projection;
+
+extern std::shared_mutex birds_mutex;
+
+extern CellGrid cellgrid;

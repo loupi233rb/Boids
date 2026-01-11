@@ -34,9 +34,6 @@ int main()
     if(window == nullptr){
         return -1;
     }
-    // 网格初始化
-     CellGrid cellgrid;
-     cellgrid.Initialize();
     
     // 所有初始化完成之后，主线程要把OpenGL上下文释放掉，交给渲染线程去使用
     glfwMakeContextCurrent(nullptr);
@@ -47,7 +44,7 @@ int main()
 
     std::thread tick_thread(tick);
     std::thread render_thread(render_tick);
-    std::thread ai_thread(ai_tick, std::ref(cellgrid));
+    // std::thread ai_thread(ai_tick, std::ref(cellgrid));
 
     while(!glfwWindowShouldClose(window))
     {
@@ -61,7 +58,7 @@ int main()
 
     tick_thread.join();
     render_thread.join();
-    ai_thread.join();
+    // ai_thread.join();
 
     for(auto *i:birds){
         delete i;
