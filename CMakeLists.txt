@@ -4,8 +4,9 @@ set(IncludePath ./include)
 set(EasyXInclude F:/environment/easyX/include)
 set(glfw ./external/glfw-3.4)
 set(glad ./external/glad)
+set(imgui ./external/imgui)
 
-file(GLOB SOURCE ./src/*.cpp ${glad}/src/gl.c)
+file(GLOB SOURCE ./src/*.cpp ${glad}/src/gl.c ${imgui}/src/*.cpp)
 file(GLOB EasyXLib F:/environment/easyX/lib/*.a)
 
 add_subdirectory(external/glm)
@@ -14,7 +15,7 @@ add_subdirectory(test)
 
 add_executable(Boid ${SOURCE})
 
-target_include_directories(Boid PRIVATE ${IncludePath} ${EasyXInclude} ${glfw}/include ${glad}/include)
+target_include_directories(Boid PRIVATE ${IncludePath} ${EasyXInclude} ${glfw}/include ${glad}/include ${imgui}/include)
 if(WIN32)
     target_link_libraries(Boid PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/${glfw}/bin/libglfw3.a)
 endif()

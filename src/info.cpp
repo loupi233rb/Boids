@@ -7,26 +7,25 @@
 
 int screenWidth;
 int screenHeight;
-
 EnvSetting eset;
 BirdSetting bset;
-
 bool RUNNING[3];
-
 std::vector<bird*> birds;
-
 Renderer renderer;
-
+KeyManager keyManager;
+Mouse mouse;
 GLFWwindow* window;
-
-glm::mat4 view = glm::mat4(1.0f);
+int windowWidth;
+int windowHeight;
+glm::vec2 mousePosition = glm::vec2(0.0f, 0.0f);
+glm::vec2 lastMousePosition = glm::vec2(0.0f, 0.0f);
+glm::mat4 view;
 glm::mat4 projection;
-
 GTimer Rfrc;
 GTimer Lfrc;
 GTimer Afrc;
-
 CellGrid cellgrid;
+Camera2D camera;
 
 // 读取配置文件
 void ReadSetting(){
@@ -108,7 +107,8 @@ GLFWwindow *InitGLFW(int screenWidth, int screenHeight){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "LearnOpenGL", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Boids by loupi233", NULL, NULL);
+    glfwMaximizeWindow(window);
     if (window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -126,6 +126,7 @@ GLFWwindow *InitGLFW(int screenWidth, int screenHeight){
 
     // 回调函数部分
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    mouse.attachToWindow(window);
 
     glDisable(GL_DEPTH_TEST);
     glfwSwapInterval(0); // 0 = no vsync
@@ -138,14 +139,29 @@ void InitialSetting(){
     ReadSetting();
 
     window = InitGLFW(eset.MX, eset.MY);
+    glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+    {
+        camera.zoom = 1.0f;
+        camera.maxZoom = 50.0f;
+        camera.minZoom = 0.02f;
+        camera.baseHalfHeight = eset.MY / 2.0f;
+        camera.dragging = false;
+        camera.lastX = 0.0;
+        camera.lastY = 0.0;
+        camera.dragSpeed = 1.0f;
+        camera.zoomSpeed = 1.1f;
+        camera.center = glm::vec2(eset.MX / 2.0f, eset.MY / 2.0f);
+    }
+
+    view = camera.getViewMatrix();
+    projection = camera.getProjectionMatrix();
 
     Lfrc = GTimer(eset.LOGIC_FPS, 5);
     Rfrc = GTimer(eset.RENDER_FPS, 5);
     Afrc = GTimer(eset.AI_FPS, 1);
 
     cellgrid.Initialize();
-
-    projection = glm::ortho(0.0f, float(eset.MX), 0.0f, float(eset.MY), -1.0f, 1.0f);
 
     framebuffer_size_callback(window, eset.MX, eset.MY);
 

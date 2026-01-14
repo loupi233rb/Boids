@@ -5,9 +5,6 @@
 #include "shader.h"
 #include "info.h"
 
-#include <mmsystem.h>
-#pragma comment(lib, "winmm.lib")
-
 #include <vector>
 #include <iostream>
 #include <ctime>
@@ -34,10 +31,9 @@ int main()
     if(window == nullptr){
         return -1;
     }
-    
-    // 所有初始化完成之后，主线程要把OpenGL上下文释放掉，交给渲染线程去使用
+    // 主线程释放OpenGL上下文
     glfwMakeContextCurrent(nullptr);
-
+    
     RUNNING[0] = true;
     RUNNING[1] = true;
     RUNNING[2] = true;

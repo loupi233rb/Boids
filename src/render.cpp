@@ -82,6 +82,8 @@ void Renderer::render(GLFWwindow *window){
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader.use();
+    view = camera.getViewMatrix();
+    projection = camera.getProjectionMatrix();
     shader.setMat4("view", view);
     shader.setMat4("projection", projection);
     // 切换写入缓冲区，并对更新后的数据进行写入

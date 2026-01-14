@@ -3,6 +3,9 @@
 #include "render.h"
 #include "timer.h"
 #include "bird.h"
+#include "camera.h"
+#include "key.h"
+#include "mouse.h"
 #include <vector>
 #include <cmath>
 #include <shared_mutex>
@@ -15,7 +18,8 @@
 
 class FrameRateController;
 class GTimer;
-
+class KeyManager;
+class Mouse;
 // 环境设置
 struct EnvSetting{
     int MX = 1000;        // window width
@@ -64,13 +68,16 @@ extern BirdSetting bset;
 
 extern bool RUNNING[3];
 
-// extern std::vector<bird_crossList> gridSet;
-
 extern std::vector<bird*> birds;
 
 extern Renderer renderer;
 
+extern KeyManager keyManager;
+extern Mouse mouse;
+
 extern GLFWwindow* window;
+extern int windowWidth;
+extern int windowHeight;
 
 extern GTimer Rfrc;
 extern GTimer Lfrc;
@@ -80,3 +87,7 @@ extern glm::mat4 view;
 extern glm::mat4 projection;
 
 extern CellGrid cellgrid;
+
+extern glm::vec2 mousePosition;
+extern glm::vec2 lastMousePosition;
+extern Camera2D camera;
