@@ -69,7 +69,7 @@ namespace Rule
     vector2 Separation(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
     vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
     vector2 Alignment(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 ChaseMouse(bird* self, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 ChaseMouse(bird* self);
     vector2 AvoidBoundary(bird* self, const EnvSetting &eset);
     vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
 }

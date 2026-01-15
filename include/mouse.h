@@ -9,6 +9,7 @@ private:
     void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
     void mouse_move_callback(GLFWwindow* window, double xpos, double ypos);
     void mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+    bool RBUTTON_DOWN;
 public:
     Mouse() = default;
     ~Mouse() = default;
@@ -25,4 +26,5 @@ public:
         if(self) self->mouse_button_callback(window, button, action, mods);
     }
     void attachToWindow(GLFWwindow* window);
+    bool isRButtonDown(){ return RBUTTON_DOWN; }
 };

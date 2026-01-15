@@ -15,9 +15,10 @@ void Mouse::scroll_callback(GLFWwindow* window, double xoffset, double yoffset){
 }
 
 void Mouse::mouse_move_callback(GLFWwindow* window, double xpos, double ypos){
+    mousePosition = glm::vec2((float)xpos, (float)ypos);
     if(!camera.dragging) return;
     double dx = xpos - camera.lastX;
-    double dy = ypos - camera.lastY;
+    double dy = -ypos + camera.lastY;
     camera.lastX = xpos;
     camera.lastY = ypos;
 
@@ -27,18 +28,30 @@ void Mouse::mouse_move_callback(GLFWwindow* window, double xpos, double ypos){
 
 void Mouse::mouse_button_callback(GLFWwindow* window, int button, int action, int mods){
     (void)mods;
+    ImGuiIO& io = ImGui::GetIO();
+    if(io.WantCaptureMouse){
+        camera.dragging = false;
+        return;
+    }
     if (button == GLFW_MOUSE_BUTTON_LEFT)
+    {
+        if (action == GLFW_PRESS)
         {
-            if (action == GLFW_PRESS)
-            {
-                camera.dragging = true;
-                glfwGetCursorPos(window, &camera.lastX, &camera.lastY);
-            }
-            else if (action == GLFW_RELEASE)
-            {
-                camera.dragging = false;
-            }
+            camera.dragging = true;
+            glfwGetCursorPos(window, &camera.lastX, &camera.lastY);
         }
+        else if (action == GLFW_RELEASE)
+        {
+            camera.dragging = false;
+        }
+    }
+    else if(button == GLFW_MOUSE_BUTTON_RIGHT){
+        if(action == GLFW_PRESS){
+            RBUTTON_DOWN = true;
+        }else if(action == GLFW_RELEASE){
+            RBUTTON_DOWN = false;
+        }
+    }
 }
 
 void Mouse::attachToWindow(GLFWwindow* window){

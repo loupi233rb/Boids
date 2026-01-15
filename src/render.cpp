@@ -79,6 +79,10 @@ void Renderer::updateInstances(){
 }
 
 void Renderer::render(GLFWwindow *window){
+    int frameW, frameH;
+    glfwGetFramebufferSize(window, &frameW, &frameH);
+    if(frameW <=0 || frameH <=0) return;
+    glViewport(0,0,frameW,frameH);
     glClearColor(0.6f, 0.6f, 0.6f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     shader.use();
@@ -101,6 +105,15 @@ void Renderer::render(GLFWwindow *window){
     glBindVertexArray(0);
     // 切换读写缓冲区索引
     std::swap(curWrite, curDraw);
+
+    // 调试窗口
+    ImGui_ImplOpenGL3_NewFrame();
+    ImGui_ImplGlfw_NewFrame();
+    ImGui::NewFrame();
+    BoidDebugWindow::render();
+    ImGui::Render();
+    ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
     glfwSwapBuffers(window);
 }
 
@@ -110,4 +123,14 @@ Renderer::~Renderer(){
     glDeleteBuffers(1, &shapeEBO);
     glDeleteBuffers(2, instanceVBO);
     shader.deleteProgram();
+}
+
+namespace BoidDebugWindow{
+    void render(){
+        ImGui::Begin("Boid Debug Window");
+        ImGui::Text("PosNow: %.1f, %.1f", camera.lastX, camera.lastY);
+        ImGui::Text("Zoom: %.2f", camera.zoom);
+        ImGui::Text("Window Size : %d x %d", windowWidth, windowHeight);
+        ImGui::End();
+    }
 }

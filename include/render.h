@@ -4,6 +4,11 @@
 #include "bird.h"
 #include "shader.h"
 #include "shape.h"
+
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <glad/gl.h>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
@@ -33,3 +38,7 @@ public:
     void bindDoubleBufferVBO(GLuint vao, GLuint shapeVBO, GLuint shapeEBO, GLuint instanceVBO);
     void render(GLFWwindow *window);
 };
+
+namespace BoidDebugWindow{
+    void render();
+}

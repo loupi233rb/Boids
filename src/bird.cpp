@@ -104,7 +104,7 @@ void bird::update(CellGrid &cellgrid){
     vector2 s = Rule::Separation_v2(this, sep_bird, eset, bset) * bset.s_w;
     vector2 a = Rule::Alignment(this, ali_bird, eset, bset) * bset.a_w;
     vector2 c = Rule::Cohesion(this, coh_bird, eset, bset) * bset.c_w;
-    vector2 chase = Rule::ChaseMouse(this, eset, bset);
+    vector2 chase = Rule::ChaseMouse(this);
     vector2 avoidance = Rule::AvoidBoundary(this, eset);
 
     if(avoidance.lenth()!=0){
@@ -244,8 +244,11 @@ namespace Rule
     };
 
     // 鼠标位置换为glm::vec2
-    vector2 ChaseMouse(bird* self, const EnvSetting &eset, const BirdSetting &bset){
-        if(eset.IS_LEFTBUTTON_DOWN){
+    vector2 ChaseMouse(bird* self){
+        if(mouse.isRButtonDown()){
+            glm::vec2 wp = camera.screen2world(mousePosition.x, mousePosition.y);
+            eset.MOUSE_POSITION.x = wp.x;
+            eset.MOUSE_POSITION.y = wp.y; 
             double d = self->getPos().distanceTo(vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y));
             if(d > 1.5*bset.mouse_r){
                 return vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y) - self->getPos();

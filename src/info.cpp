@@ -2,11 +2,13 @@
 #include "bird.h"
 #include "timer.h"
 
+#include <imgui.h>
+#include <imgui_impl_glfw.h>
+#include <imgui_impl_opengl3.h>
+
 #include <iostream>
 #include <fstream>
 
-int screenWidth;
-int screenHeight;
 EnvSetting eset;
 BirdSetting bset;
 bool RUNNING[3];
@@ -77,9 +79,16 @@ void ReadSetting(){
     {
         std::cerr << e.what() << '\n';
     }
-    screenWidth = eset.MX;
-    screenHeight = eset.MY;
+    windowWidth = eset.MX;
+    windowHeight = eset.MY;
     std::cout << "config file is loaded SUCCESSFULLY!" << std::endl;
+}
+
+inline void SetMXY(){
+    float BASE_WEIGHT_RATIO = 1600.0f / 1000.0f;
+    float BASE_HEIGHT_RATIO = 900.0f / 1000.0f;
+    eset.MX = eset.BIRD_NUM * BASE_WEIGHT_RATIO;
+    eset.MY = eset.BIRD_NUM * BASE_HEIGHT_RATIO;
 }
 
 static void glfw_error_callback(int error, const char* description)
@@ -90,13 +99,15 @@ static void glfw_error_callback(int error, const char* description)
 void framebuffer_size_callback(GLFWwindow* window, int width, int height)
 {
     // keep  screen ratio
-    glViewport(0, 0, width, height);
+    // glViewport(0, 0, width, height);
     // projection = glm::ortho(0.0f, float(width), 0.0f, float(height), -1.0f, 1.0f);
-    screenWidth = width;
-    screenHeight = height;
+    windowWidth = width;
+    windowHeight = height;
+    camera._camera_screenWidth = width;
+    camera._camera_screenHeight = height;
 }
 
-GLFWwindow *InitGLFW(int screenWidth, int screenHeight){
+GLFWwindow *InitGLFW(){
     glfwSetErrorCallback(glfw_error_callback);
     if (!glfwInit())
     {
@@ -107,7 +118,7 @@ GLFWwindow *InitGLFW(int screenWidth, int screenHeight){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    GLFWwindow* window = glfwCreateWindow(screenWidth, screenHeight, "Boids by loupi233", NULL, NULL);
+    GLFWwindow* window = glfwCreateWindow(windowWidth, windowHeight, "Boids by loupi233", NULL, NULL);
     glfwMaximizeWindow(window);
     if (window == NULL)
     {
@@ -131,15 +142,25 @@ GLFWwindow *InitGLFW(int screenWidth, int screenHeight){
     glDisable(GL_DEPTH_TEST);
     glfwSwapInterval(0); // 0 = no vsync
 
+    ImGui::CreateContext();
+    ImGui_ImplGlfw_InitForOpenGL(window, true);
+    ImGui_ImplOpenGL3_Init("#version 330");
+
     return window;
 }
 
 // 全局共享变量统一由info.cpp管理和初始化，仅需调用一次
 void InitialSetting(){
     ReadSetting();
+    SetMXY();
 
-    window = InitGLFW(eset.MX, eset.MY);
+    window = InitGLFW();
     glfwGetWindowSize(window, &windowWidth, &windowHeight);
+
+    int frameW, frameH;
+    glfwGetFramebufferSize(window, &frameW, &frameH);
+    camera._camera_screenWidth = frameW;
+    camera._camera_screenHeight = frameH;
 
     {
         camera.zoom = 1.0f;
@@ -162,8 +183,6 @@ void InitialSetting(){
     Afrc = GTimer(eset.AI_FPS, 1);
 
     cellgrid.Initialize();
-
-    framebuffer_size_callback(window, eset.MX, eset.MY);
 
     RUNNING[0] = false;
     RUNNING[1] = false;

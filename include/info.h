@@ -55,13 +55,12 @@ struct BirdSetting{
 };
 
 void ReadSetting();
+inline void SetMXY();
 void InitialSetting();
 static void glfw_error_callback(int error, const char* description);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 GLFWwindow *InitGLFW(int width, int height);
 
-extern int screenWidth;
-extern int screenHeight;
 
 extern EnvSetting eset;
 extern BirdSetting bset;
