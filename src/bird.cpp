@@ -57,8 +57,8 @@ vector2 vector2::normalize() const{
     return vector2(0,0);
 };
 
-double vector2::distanceTo(const vector2 other) const {
-    return sqrt(pow(x-other.x,2)+pow(y-other.y,2));
+double vector2::distanceToSq(const vector2 other) const {
+    return pow(x-other.x,2)+pow(y-other.y,2);
 };
 
 void vector2::print(){
@@ -101,11 +101,11 @@ void bird::update(CellGrid &cellgrid){
     std::vector<bird*> ali_bird = cellgrid.getNeibors(this, "alignment");
     std::vector<bird*> coh_bird = cellgrid.getNeibors(this, "cohesion");
 
-    vector2 s = Rule::Separation_v2(this, sep_bird, eset, bset) * bset.s_w;
-    vector2 a = Rule::Alignment(this, ali_bird, eset, bset) * bset.a_w;
-    vector2 c = Rule::Cohesion(this, coh_bird, eset, bset) * bset.c_w;
+    vector2 s = Rule::Separation(this, sep_bird) * bset.s_w;
+    vector2 a = Rule::Alignment(this, ali_bird) * bset.a_w;
+    vector2 c = Rule::Cohesion(this, coh_bird) * bset.c_w;
     vector2 chase = Rule::ChaseMouse(this);
-    vector2 avoidance = Rule::AvoidBoundary(this, eset);
+    vector2 avoidance = Rule::AvoidBoundary(this);
 
     if(avoidance.lenth()!=0){
         s.zero();
@@ -187,39 +187,25 @@ namespace Birdmath
 
 namespace Rule
 {
-    vector2 Separation(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset){
-        vector2 sep_vector(0, 0);
-        int sep_count = 0;
-        for(int i = 0;i < boids.size();i++){
-            if(boids[i] == self) continue;
-            if(distance[i] < bset.s_r){
-                sep_vector += boids[i]->getPos();
-                sep_count++;
-            }
-        }
-        if(sep_count != 0) sep_vector /= sep_count;
-        return (self->getPos() - sep_vector).normalize() * Birdmath::SIP(10., (self->getPos() - sep_vector).lenth());
-    };
-
-    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
+    vector2 Separation(bird* self, const std::vector<bird*> &boids){
         vector2 sep_force(0,0);
         for(auto *i: boids){
             if(i == self) continue;
-            double distance = self->getPos().distanceTo(i->getPos());
-            if(distance < bset.s_r && distance > 1e-3f){
-                sep_force += (self->getPos() - i->getPos()) / distance * bset.s_r;
+            double distanceSq = self->getPos().distanceToSq(i->getPos());
+            if(distanceSq < bset.s_r_sq && distanceSq > 1e-6f){
+                sep_force += (self->getPos() - i->getPos()) / sqrt(distanceSq) * bset.s_r;
             }
         }
         return sep_force;
     }
 
-    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
+    vector2 Cohesion(bird* self, const std::vector<bird*> &boids){
         vector2 coh_vector(0, 0);
         int coh_count = 0;
         for(auto *i: boids){
             if(i == self) continue;
-            double distance = self->getPos().distanceTo(i->getPos());
-            if(distance < bset.c_r && distance > 1e-3f){
+            double distanceSq = self->getPos().distanceToSq(i->getPos());
+            if(distanceSq < bset.c_r_sq && distanceSq > 1e-6f){
                 coh_vector += i->getPos();
                 coh_count++;
             }
@@ -228,13 +214,13 @@ namespace Rule
         return coh_vector - self->getPos();
     };
 
-    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset){
+    vector2 Alignment(bird* self, const std::vector<bird*> &boids){
         vector2 ali_vector(0,0);
         int ali_count = 0;
         for(auto *i: boids){
             if(i == self) continue;
-            double distance = self->getPos().distanceTo(i->getPos());
-            if(distance < bset.a_r){
+            double distanceSq = self->getPos().distanceToSq(i->getPos());
+            if(distanceSq < bset.a_r_sq){
                 ali_vector += i->getV();
                 ali_count++;
             }
@@ -249,7 +235,7 @@ namespace Rule
             glm::vec2 wp = camera.screen2world(mousePosition.x, mousePosition.y);
             eset.MOUSE_POSITION.x = wp.x;
             eset.MOUSE_POSITION.y = wp.y; 
-            double d = self->getPos().distanceTo(vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y));
+            double d = pow(self->getPos().distanceToSq(vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y)), 2);
             if(d > 1.5*bset.mouse_r){
                 return vector2(eset.MOUSE_POSITION.x, eset.MOUSE_POSITION.y) - self->getPos();
             }
@@ -267,7 +253,7 @@ namespace Rule
         }
     };
 
-    vector2 AvoidBoundary(bird* self, const EnvSetting &eset){
+    vector2 AvoidBoundary(bird* self){
         vector2 boundary_force;
         if(self->getPos().x < eset.BOUNDARY) boundary_force.x += (eset.BOUNDARY - self->getPos().x)/eset.BOUNDARY;
         if(self->getPos().x > eset.MX-eset.BOUNDARY) boundary_force.x -= (self->getPos().x-(eset.MX-eset.BOUNDARY))/eset.BOUNDARY;

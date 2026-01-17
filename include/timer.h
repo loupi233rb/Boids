@@ -44,7 +44,6 @@ public:
 	double getFps();
 	void outputFps();
 	double getLERP();
-	bool readyToUpdate();
 };
 
 class GTimer

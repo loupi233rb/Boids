@@ -23,7 +23,7 @@ glm::vec2 mousePosition = glm::vec2(0.0f, 0.0f);
 glm::vec2 lastMousePosition = glm::vec2(0.0f, 0.0f);
 glm::mat4 view;
 glm::mat4 projection;
-GTimer Rfrc;
+FrameRateController Rfrc;
 GTimer Lfrc;
 GTimer Afrc;
 CellGrid cellgrid;
@@ -79,6 +79,9 @@ void ReadSetting(){
     {
         std::cerr << e.what() << '\n';
     }
+    bset.s_r_sq = pow(bset.s_r, 2);
+    bset.a_r_sq = pow(bset.a_r, 2);
+    bset.c_r_sq = pow(bset.c_r, 2);
     windowWidth = eset.MX;
     windowHeight = eset.MY;
     std::cout << "config file is loaded SUCCESSFULLY!" << std::endl;
@@ -178,9 +181,9 @@ void InitialSetting(){
     view = camera.getViewMatrix();
     projection = camera.getProjectionMatrix();
 
-    Lfrc = GTimer(eset.LOGIC_FPS, 5);
-    Rfrc = GTimer(eset.RENDER_FPS, 5);
-    Afrc = GTimer(eset.AI_FPS, 1);
+    Lfrc = GTimer(eset.LOGIC_FPS, 0);
+    Rfrc = FrameRateController(eset.RENDER_FPS, 0.1);
+    Afrc = GTimer(eset.AI_FPS, 0);
 
     cellgrid.Initialize();
 

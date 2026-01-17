@@ -46,6 +46,9 @@ struct BirdSetting{
     float s_r = 50.0;                 // separation range
     float a_r = 200.0;                // alignment range
     float c_r = 80.0;                 // cohesion range
+    float s_r_sq = 250.0;
+    float a_r_sq = 40000.0;
+    float c_r_sq = 6400.0;
     double v_max = 120;           // max velocity
     double f_max = 200;           // max force
     double f_min = 5;             // min force
@@ -78,7 +81,7 @@ extern GLFWwindow* window;
 extern int windowWidth;
 extern int windowHeight;
 
-extern GTimer Rfrc;
+extern FrameRateController Rfrc;
 extern GTimer Lfrc;
 extern GTimer Afrc;
 

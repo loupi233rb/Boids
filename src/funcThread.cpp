@@ -7,14 +7,12 @@
 void render_tick()
 {
     Rfrc.init();
-    Rfrc.addTask([](){
-        renderer.updateInstances();
-    });
-    Rfrc.addTask([&](){renderer.render(window);});
     std::cout<<"Render thread started."<<std::endl;
     glfwMakeContextCurrent(window);
     while(RUNNING[1]){
-        Rfrc.step();
+        renderer.updateInstances();
+        renderer.render(window);
+        Rfrc.wait();
     }
 }
 

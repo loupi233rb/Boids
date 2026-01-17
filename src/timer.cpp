@@ -69,6 +69,7 @@ double FrameRateController::getLERP(){
 	return std::chrono::duration_cast<std::chrono::duration<double>>(clock::now() - last_frame_time).count() / target_frame_time.count();
 }
 
+
 GTimer::GTimer(double rate, int maxstep){
 	this->deltaTime = duration(1.0 / rate);
 	this->maxStep = maxstep;
@@ -93,12 +94,12 @@ void GTimer::step(){
 	while(this->accumulator >= this->deltaTime){
 		this->accumulator -= this->deltaTime;
 		this->curStep++;
+		for(auto &task:tasks){
+			task();
+		}
 		if(this->curStep > this->maxStep){
 			this->accumulator = duration::zero();
 			break;
-		}
-		for(auto &task:tasks){
-			task();
 		}
 	}
 	this->curStep = 0;

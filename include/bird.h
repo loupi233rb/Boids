@@ -28,7 +28,7 @@ struct vector2{
     vector2& operator*=(float s);
     vector2& operator/=(float s);
     vector2 limit(float maxForce);
-    double distanceTo(const vector2 other) const;
+    double distanceToSq(const vector2 other) const;
     double lenth() const;
     vector2 rotate(float theta);
     vector2 normalize() const;
@@ -66,12 +66,11 @@ struct birdInstance{
 
 namespace Rule
 {
-    vector2 Separation(bird* self, const std::vector<bird*> &boids, const std::vector<double> &distance, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 Cohesion(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
-    vector2 Alignment(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 Separation(bird* self, const std::vector<bird*> &boids);
+    vector2 Cohesion(bird* self, const std::vector<bird*> &boids);
+    vector2 Alignment(bird* self, const std::vector<bird*> &boids);
     vector2 ChaseMouse(bird* self);
-    vector2 AvoidBoundary(bird* self, const EnvSetting &eset);
-    vector2 Separation_v2(bird* self, const std::vector<bird*> &boids, const EnvSetting &eset, const BirdSetting &bset);
+    vector2 AvoidBoundary(bird* self);
 }
 
 struct cellnet{
@@ -90,24 +89,3 @@ public:
     void refresh();
     std::vector<bird*> getNeibors(bird* self, const std::string &type);
 };
-
-// class bird_crossList:public CrossList<grid>{
-// public:
-//     int grid_size;
-//     bird_crossList(int rows, int cols):CrossList<grid>(rows, cols){};
-//     ~bird_crossList();
-//     void add(bird* b);
-//     void clear_bird();
-// };
-
-// // 网格划分函数
-// std::vector<bird_crossList> DivideGrid(const EnvSetting& eset, const BirdSetting& bset);
-
-// // 网格更新
-// void GridUpdate(std::vector<bird_crossList> &gridSet, const std::vector<bird*> &boids, const BirdSetting &bset);
-
-// // 返回网格范围
-// std::vector<bird*> FindNeighborGridBird(const bird_crossList &grids, bird* b);
-
-// //回收内存
-// void DeleteGrids(std::vector<bird_crossList> &gridSet);

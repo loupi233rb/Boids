@@ -131,6 +131,7 @@ namespace BoidDebugWindow{
         ImGui::Text("PosNow: %.1f, %.1f", camera.lastX, camera.lastY);
         ImGui::Text("Zoom: %.2f", camera.zoom);
         ImGui::Text("Window Size : %d x %d", windowWidth, windowHeight);
+        ImGui::Text("Render Fps: %.2f", Rfrc.getFps());
         ImGui::End();
     }
 }
