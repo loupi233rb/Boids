@@ -2,6 +2,7 @@
 
 #include <stdio.h>
 
+#if defined(WIN32)
 HighPrecisionTimer::HighPrecisionTimer() {
     QueryPerformanceFrequency(&m_frequency);
     QueryPerformanceCounter(&m_startCount);
@@ -22,6 +23,7 @@ double HighPrecisionTimer::getElapsedMicroseconds() {
 void HighPrecisionTimer::reset() {
     QueryPerformanceCounter(&m_startCount);
 };
+#endif
 
 #include <thread>
 
@@ -65,11 +67,6 @@ void FrameRateController::init()
 
 double FrameRateController::getLERP(){
 	return std::chrono::duration_cast<std::chrono::duration<double>>(clock::now() - last_frame_time).count() / target_frame_time.count();
-}
-
-bool FrameRateController::readyToUpdate(){
-	auto gap = clock::now() - last_frame_time;
-
 }
 
 GTimer::GTimer(double rate, int maxstep){

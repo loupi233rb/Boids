@@ -1,9 +1,10 @@
 #pragma once
 
-#include <windows.h>
 #include <chrono>
 #include <functional>
 
+#if defined(WIN32)
+#include <windows.h>
 class HighPrecisionTimer {
 private:
     LARGE_INTEGER m_frequency;
@@ -15,7 +16,7 @@ public:
     double getElapsedMicroseconds();
     void reset();
 };
-
+#endif
 
 class FrameRateController{
 private:

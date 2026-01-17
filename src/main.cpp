@@ -10,7 +10,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <chrono>
-#include <conio.h>
+// #include <conio.h>
 #include <thread>
 
 #include <glad/gl.h>
